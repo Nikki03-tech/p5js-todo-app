@@ -1,20 +1,89 @@
 <!DOCTYPE html>
 <html>
 <head>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <style>
+    body { margin: 0; font-family: Arial; background: #f0f4f8; }
+    canvas { display: block; margin: 20px auto; border: 2px solid #4a90e2; border-radius: 10px; }
+  </style>
 </head>
 <body>
 <script>
 let todos = [];
+let nextId = 0;
+
 function setup() {
-  createCanvas(400, 600);
-  textAlign(LEFT);
+  createCanvas(500, 700);
+  textAlign(LEFT, CENTER);
+  textSize(16);
 }
+
 function draw() {
-  background(240);
-  fill(0);
-  text("p5.js Todo (GSoC Demo)", 20, 30);
-  // Add simple todo logic here
+  background(255, 248, 245);
+  
+  // Header
+  fill(74, 144, 226);
+  rect(0, 0, width, 80);
+  fill(255);
+  textFont('Arial Black');
+  textSize(24);
+  text("p5.js Todo (GSoC Demo)", 30, 45);
+  
+  // Todos
+  for (let i = 0; i < todos.length; i++) {
+    let todo = todos[i];
+    let y = 100 + i * 60;
+    
+    // Todo box
+    fill(todo.hover ? [255, 220, 200] : [255]);
+    stroke(todo.hover ? [255, 140, 0] : [200]);
+    strokeWeight(2);
+    rect(30, y-10, width-80, 45, 8);
+    
+    // Text
+    fill(50);
+    text(todo.text, 50, y);
+    
+    // Delete button
+    fill(todo.hover ? [255, 100, 100] : [255, 150, 150]);
+    rect(width-60, y-8, 25, 25, 4);
+    fill(255);
+    textSize(14);
+    text('×', width-52, y+3);
+  }
+  
+  // Add instruction
+  fill(120);
+  textSize(14);
+  text("Click to add todo • Right-click to delete", 30, height-30);
+}
+
+function mousePressed() {
+  // Add new todo
+  if (mouseY > 80) {
+    todos.unshift({id: nextId++, text: `Task ${nextId}`, hover: false});
+    if (todos.length > 8) todos.pop();
+  }
+}
+
+function mouseClicked() {
+  // Delete todo
+  for (let i = todos.length-1; i >= 0; i--) {
+    let todo = todos[i];
+    let y = 100 + i * 60;
+    if (mouseX > width-65 && mouseX < width-35 && mouseY > y-18 && mouseY < y+12) {
+      todos.splice(i, 1);
+      return;
+    }
+  }
+}
+
+function mouseMoved() {
+  for (let i = 0; i < todos.length; i++) {
+    let todo = todos[i];
+    let y = 100 + i * 60;
+    todo.hover = mouseX > 30 && mouseX < width-65 && mouseY > y-20 && mouseY < y+25;
+  }
 }
 </script>
 </body>
