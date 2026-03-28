@@ -20,3 +20,24 @@ p5.js - JavaScript - HTML5 Canvas - CSS Animations
 3. Click canvas to add todos!
 
 ## 📋 Usage
+```
+Click anywhere = Add todo
+Right-click todo = Delete
+Hover = Animate
+Perfect for testing save/preview flows!
+
+```
+
+
+## 🤝 Why for GSoC?
+**Built to test E2E flows** in p5.js Web Editor:
+- Save sketch state
+- Preview rendering  
+- User interactions
+- Local storage persistence
+
+**Live testing**: https://editor.p5js.org/Nikki03-tech/sketches/[your-sketch]
+
+## 📈 Creator
+[Nikki03-tech](https://github.com/Nikki03-tech) | GSoC 2026 Processing Foundation
+**PR #4048**: [p5.js Web Editor Contribution](https://github.com/processing/p5.js-web-editor/pull/4048)
