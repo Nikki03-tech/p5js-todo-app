@@ -4,18 +4,33 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
   <style>
     body { margin: 0; font-family: Arial; background: #f0f4f8; }
-    canvas { display: block; margin: 20px auto; border: 2px solid #4a90e2; border-radius: 10px; }
+    canvas { display: block; margin: 20px auto; border: 2px solid #4a90e2; border-radius: 10px; cursor: default; }
+    #inputContainer { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); display: none; }
+    input { width: 300px; padding: 10px; border: 2px solid #4a90e2; border-radius: 5px; font-size: 16px; }
+    button { padding: 10px 20px; margin: 0 5px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; }
+    .saveBtn { background: #4a90e2; color: white; }
+    .cancelBtn { background: #ccc; color: #333; }
   </style>
 </head>
 <body>
+  <div id="inputContainer">
+    <input type="text" id="taskInput" placeholder="Enter your task..." maxlength="50">
+    <br><br>
+    <button class="saveBtn" onclick="saveTask()">Save Task</button>
+    <button class="cancelBtn" onclick="cancelInput()">Cancel</button>
+  </div>
+
 <script>
 let todos = [];
 let nextId = 0;
+let inputActive = false;
+let hoverDeleteIndex = -1;
 
 function setup() {
   createCanvas(500, 700);
   textAlign(LEFT, CENTER);
   textSize(16);
+  loadTodos(); // Load saved todos
 }
 
 function draw() {
@@ -44,47 +59,105 @@ function draw() {
     fill(50);
     text(todo.text, 50, y);
     
-    // Delete button
-    fill(todo.hover ? [255, 100, 100] : [255, 150, 150]);
+    // Delete button (Dustbin icon)
+    let deleteHover = (hoverDeleteIndex === i);
+    fill(deleteHover ? [200, 50, 50] : [255, 150, 150]);
+    stroke(deleteHover ? [150, 30, 30] : [200, 100, 100]);
+    strokeWeight(2);
     rect(width-60, y-8, 25, 25, 4);
-    fill(255);
-    textSize(14);
-    text('×', width-52, y+3);
+    
+    // Dustbin symbol (three lines + lid)
+    stroke(255);
+    strokeWeight(2);
+    line(width-55, y-2, width-45, y-2); // lid
+    line(width-52, y+2, width-48, y+2);  // top bar
+    line(width-52, y+8, width-48, y+8);  // middle bar
+    line(width-52, y+14, width-48, y+14); // bottom bar
   }
   
-  // Add instruction
+  // Instructions
   fill(120);
   textSize(14);
-  text("Click to add todo • Right-click to delete", 30, height-30);
+  let instruction = inputActive ? "Type your task and click Save" : "Click anywhere to add todo • Click 🗑️ to delete";
+  text(instruction, 30, height-30);
 }
 
 function mousePressed() {
-  // Add new todo
-  if (mouseY > 80) {
-    todos.unshift({id: nextId++, text: `Task ${nextId}`, hover: false});
-    if (todos.length > 8) todos.pop();
+  if (!inputActive) {
+    // Check delete first
+    for (let i = 0; i < todos.length; i++) {
+      let y = 100 + i * 60;
+      if (mouseX > width-65 && mouseX < width-35 && mouseY > y-18 && mouseY < y+12) {
+        todos.splice(i, 1);
+        saveTodos();
+        return;
+      }
+    }
+    
+    // Add new todo (show input)
+    showInput();
   }
 }
 
-function mouseClicked() {
-  // Delete todo
-  for (let i = todos.length-1; i >= 0; i--) {
-    let todo = todos[i];
-    let y = 100 + i * 60;
-    if (mouseX > width-65 && mouseX < width-35 && mouseY > y-18 && mouseY < y+12) {
-      todos.splice(i, 1);
-      return;
-    }
+function showInput() {
+  inputActive = true;
+  document.getElementById('inputContainer').style.display = 'block';
+  document.getElementById('taskInput').focus();
+  document.getElementById('taskInput').select();
+}
+
+function saveTask() {
+  let taskText = document.getElementById('taskInput').value.trim();
+  if (taskText) {
+    todos.unshift({id: nextId++, text: taskText, hover: false});
+    if (todos.length > 10) todos.pop(); // Limit to 10 todos
+    saveTodos();
+  }
+  cancelInput();
+}
+
+function cancelInput() {
+  inputActive = false;
+  document.getElementById('inputContainer').style.display = 'none';
+  document.getElementById('taskInput').value = '';
+}
+
+function saveTodos() {
+  localStorage.setItem('p5js_todos', JSON.stringify(todos));
+  localStorage.setItem('p5js_nextId', nextId);
+}
+
+function loadTodos() {
+  let saved = localStorage.getItem('p5js_todos');
+  if (saved) {
+    todos = JSON.parse(saved);
+    nextId = parseInt(localStorage.getItem('p5js_nextId') || '0');
   }
 }
 
 function mouseMoved() {
+  hoverDeleteIndex = -1;
   for (let i = 0; i < todos.length; i++) {
     let todo = todos[i];
     let y = 100 + i * 60;
+    
+    // Todo hover
     todo.hover = mouseX > 30 && mouseX < width-65 && mouseY > y-20 && mouseY < y+25;
+    
+    // Delete hover
+    if (mouseX > width-65 && mouseX < width-35 && mouseY > y-18 && mouseY < y+12) {
+      hoverDeleteIndex = i;
+    }
   }
 }
+
+// Allow Enter/Escape in input
+document.addEventListener('keydown', function(e) {
+  if (inputActive) {
+    if (e.key === 'Enter') saveTask();
+    if (e.key === 'Escape') cancelInput();
+  }
+});
 </script>
 </body>
 </html>
